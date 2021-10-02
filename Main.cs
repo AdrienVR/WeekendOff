@@ -8,7 +8,7 @@ using System.Threading;
 namespace WeekendOff
 {
     /// <summary>
-    /// Kill Microsoft Teams and Hansoft on weekend.
+    /// Kill Microsoft Teams and Hansoft or any process written in ProcessToKillList.txt (one process by line) on weekend.
     /// Waits for maximum 5 minutes to find the processes and kill them.
     /// Ends when all are killed or timed out.
     /// </summary>
@@ -60,7 +60,10 @@ namespace WeekendOff
                                 toKillList.Remove(pToKill);
                             }
                             // ReSharper disable once EmptyGeneralCatchClause
-                            catch { }
+                            catch 
+                            {
+                                toKillList.Remove(pToKill);
+                            }
                         }
                     }
                 }
