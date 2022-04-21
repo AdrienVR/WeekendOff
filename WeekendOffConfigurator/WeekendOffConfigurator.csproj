@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>sunbed_settings.ico</ApplicationIcon>
+    <PackageIcon>sunbed_settings.ico</PackageIcon>
+    <BaseOutputPath>../bin</BaseOutputPath>
+    <BaseIntermediateOutputPath>../obj</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="sunbed.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\sunbed_settings.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MahApps.Metro" Version="2.4.9" />
+  </ItemGroup>
+
+</Project>

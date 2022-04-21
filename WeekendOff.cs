@@ -2,32 +2,54 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace WeekendOff
 {
     /// <summary>
-    /// Kill Microsoft Teams and Hansoft or any process written in ProcessToKillList.txt (one process by line) on weekend.
+    /// Kill Microsoft Teams or any process written in ProcessToKillList.txt (one process by line) on weekend.
     /// Waits for maximum 5 minutes to find the processes and kill them.
     /// Ends when all are killed or timed out.
     /// </summary>
     // ReSharper disable once ClassNeverInstantiated.Global
     internal class WeekendOff
     {
-        public static readonly List<string> ProcessToKillOnWeekend = new List<string> {"Teams", "HPMClient_x64"};
+        public static readonly List<string> ProcessToKillOnWeekend = new List<string> {"Teams"};
 
         /// <summary>
-        /// Stops trying to kill after 5 minutes.
+        /// Stops trying to kill after 2 minutes.
         /// </summary>
-        public static int Timeout = 5 * 60;
+        public static int Timeout = 2 * 60 * 1000;
 
         private static void Main()
         {
-            DayOfWeek day = DateTime.Now.DayOfWeek;
-            if (day != DayOfWeek.Saturday && day != DayOfWeek.Sunday)
+            List<DayOfWeek> workingDays = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+            List<(int, int)> workingHours = new List<(int, int)> { (0, 24), (0, 24), (0, 24), (0, 24), (0, 24) };
+            try
             {
-                return;
+                var lines = File.ReadAllLines("WorkingDaysConfig.txt");
+                workingDays.Clear();
+                workingDays.AddRange(lines.Select(s => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), s.Split(':')[0])));
+                workingHours.Clear();
+                workingHours.AddRange(lines.Select(s =>
+                {
+                    var xToY = s.Split(':')[1];
+                    var xy = xToY.Split(new[] { "to" }, StringSplitOptions.None);
+                    return (int.Parse(xy[0]), int.Parse(xy[1]));
+                }));
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch { }
+            DayOfWeek day = DateTime.Now.DayOfWeek;
+            int configDayIndex = workingDays.IndexOf(day);
+            if (configDayIndex != -1)
+            {
+                int dayHour = DateTime.Now.Hour;
+                var dayWorkingHours = workingHours[configDayIndex];
+                if (dayHour >= dayWorkingHours.Item1 && dayHour <= dayWorkingHours.Item2)
+                    return;
             }
 
             try
@@ -41,13 +63,12 @@ namespace WeekendOff
 
             List<string> toKillList = new List<string> (ProcessToKillOnWeekend);
 
-            Process[] processes;
             int timeSpent = 0;
             while (timeSpent < Timeout)
             {
                 Thread.Sleep(5);
                 timeSpent += 5;
-                processes = Process.GetProcesses();
+                var processes = Process.GetProcesses();
                 foreach (var pToKill in ProcessToKillOnWeekend)
                 {
                     foreach (var process in processes)
